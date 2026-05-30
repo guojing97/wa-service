@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp API Service Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Auto Config Script -->
+  <script src="/api-config.js"></script>
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --panel-bg: rgba(30, 41, 59, 0.45);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --accent-color: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.5);
+      --success-color: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.4);
+      --warning-color: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.4);
+      --danger-color: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Background glow decorations */
+    .glow-sphere {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(40px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    .glow-1 { top: -100px; right: -50px; }
+    .glow-2 { bottom: -100px; left: -50px; }
+
+    header {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand i {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+    }
+
+    .brand h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #f8fafc 40%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .api-key-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--panel-border);
+      padding: 0.5rem 0.75rem;
+      border-radius: 50px;
+      transition: var(--transition);
+      max-width: 320px;
+    }
+
+    .api-key-wrapper:focus-within {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .api-key-wrapper i {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .api-key-input {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      width: 180px;
+    }
+
+    .btn-save-key {
+      background: var(--accent-color);
+      border: none;
+      color: white;
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-save-key:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    main {
+      flex: 1;
+      padding: 2.5rem 2rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.8fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards / Panels */
+    .glass-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-panel:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 1rem;
+    }
+
+    .panel-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .panel-title i {
+      color: var(--accent-color);
+    }
+
+    /* Connection Status Styles */
+    .status-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      text-align: center;
+    }
+
+    .status-badge-pulse {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .status-badge-pulse::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      opacity: 0.4;
+      z-index: -1;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.4; }
+      70% { transform: scale(1.4); opacity: 0; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    /* Connected State */
+    .status-connected {
+      background: rgba(16, 185, 129, 0.15);
+      border: 2px solid var(--success-color);
+      color: var(--success-color);
+      box-shadow: 0 0 20px var(--success-glow);
+    }
+    .status-connected::after { background: var(--success-color); }
+
+    /* Disconnected State */
+    .status-disconnected {
+      background: rgba(239, 68, 68, 0.15);
+      border: 2px solid var(--danger-color);
+      color: var(--danger-color);
+      box-shadow: 0 0 20px var(--danger-glow);
+    }
+    .status-disconnected::after { background: var(--danger-color); }
+
+    /* Connecting / Pending state */
+    .status-pending {
+      background: rgba(245, 158, 11, 0.15);
+      border: 2px solid var(--warning-color);
+      color: var(--warning-color);
+      box-shadow: 0 0 20px var(--warning-glow);
+    }
+    .status-pending::after { background: var(--warning-color); }
+
+    .status-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      text-transform: capitalize;
+    }
+
+    .status-detail {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    .qr-box {
+      background: white;
+      padding: 1.25rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      margin-bottom: 1rem;
+      display: inline-block;
+      transition: var(--transition);
+    }
+
+    .qr-box img {
+      display: block;
+      width: 200px;
+      height: 200px;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 0.85rem 1.5rem;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent-color);
+      color: white;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 15px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--danger-color);
+      color: var(--danger-color);
+    }
+    .btn-danger:hover {
+      background: var(--danger-color);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px var(--danger-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.12);
+      transform: translateY(-2px);
+    }
+
+    /* Form Styles */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.5);
+      padding: 0.35rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      border: 1px solid var(--panel-border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-color);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--panel-border);
+      padding: 0.9rem 1.1rem;
+      border-radius: 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .form-input::placeholder {
+      color: #64748b;
+    }
+
+    textarea.form-input {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    /* Notification log console */
+    .console-panel {
+      margin-top: 2rem;
+      grid-column: 1 / -1;
+    }
+
+    .console-log {
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 12px;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 1.25rem;
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .console-line {
+      margin-bottom: 0.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .console-time {
+      color: var(--accent-color);
+      flex-shrink: 0;
+    }
+
+    .console-text.success { color: var(--success-color); }
+    .console-text.error { color: var(--danger-color); }
+    .console-text.info { color: var(--text-muted); }
+    .console-text.warning { color: var(--warning-color); }
+
+    /* Alert / Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      z-index: 100;
+    }
+
+    .toast {
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      transform: translateY(100px);
+      opacity: 0;
+      animation: slideIn 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 350px;
+    }
+
+    @keyframes slideIn {
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .toast.success { border-left: 4px solid var(--success-color); }
+    .toast.error { border-left: 4px solid var(--danger-color); }
+    .toast.info { border-left: 4px solid var(--accent-color); }
+
+    .toast-icon {
+      font-size: 1.2rem;
+    }
+    .toast.success .toast-icon { color: var(--success-color); }
+    .toast.error .toast-icon { color: var(--danger-color); }
+    .toast.info .toast-icon { color: var(--accent-color); }
+
+    .toast-msg {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Tooltip / Hint styling */
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      display: block;
+    }
+
+    .session-meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .session-meta-table td {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .session-meta-table td:first-child {
+      color: var(--text-muted);
+      font-weight: 600;
+      width: 40%;
+    }
+
+    .session-meta-table td:last-child {
+      text-align: right;
+      font-weight: 500;
+    }
+
+    /* Pulse animation for QR fetching spinner */
+    .spinner {
+      animation: spin 1.5s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="glow-sphere glow-1"></div>
+  <div class="glow-sphere glow-2"></div>
+
+  <header>
+    <div class="brand">
+      <i class="fa-brands fa-whatsapp"></i>
+      <div>
+        <h1>WA Service</h1>
+        <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Express + Baileys Controller</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 2rem;">
+      <a href="/docs.html" style="color: var(--text-muted); font-size: 0.85rem; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: var(--transition);" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'">
+        <i class="fa-solid fa-book-open"></i>
+        Dokumentasi API
+      </a>
+      <div class="api-key-wrapper">
+        <i class="fa-solid fa-key"></i>
+        <input type="password" id="apiKeyInput" class="api-key-input" placeholder="Masukkan API Key...">
+        <button class="btn-save-key" onclick="saveApiKey()">Simpan</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT PANEL: CONNECTION & CONTROL -->
+    <div class="glass-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <i class="fa-solid fa-tower-broadcast"></i>
+          Koneksi WhatsApp
+        </h2>
+        <span id="uptimeBadge" style="font-size: 0.75rem; background: rgba(255,255,255,0.06); padding: 0.25rem 0.5rem; border-radius: 6px; color: var(--text-muted);">
+          Uptime: --
+        </span>
+      </div>
+
+      <div class="status-container">
+        <!-- Status indicator icon -->
+        <div id="statusBadge" class="status-badge-pulse status-disconnected">
+          <i id="statusIcon" class="fa-solid fa-unlink"></i>
+        </div>
+
+        <div id="statusText" class="status-text">Disconnected</div>
+        <div id="statusDetail" class="status-detail">Silakan masukkan API Key terlebih dahulu untuk memantau status sesi WhatsApp.</div>
+
+        <!-- Dynamic QR Code space -->
+        <div id="qrContainer" style="display: none;">
+          <div class="qr-box">
+            <img id="qrImage" src="" alt="WhatsApp QR Code">
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+            <i class="fa-solid fa-circle-info"></i> Pindai menggunakan WhatsApp di ponsel Anda. QR diperbarui secara berkala.
+          </p>
+        </div>
+
+        <!-- Table for metadata -->
+        <table id="sessionMetaTable" class="session-meta-table" style="display: none;">
+          <tbody>
+            <tr>
+              <td>Nomor WA</td>
+              <td id="metaPhone">-</td>
+            </tr>
+            <tr>
+              <td>Nama Akun</td>
+              <td id="metaName">-</td>
+            </tr>
+            <tr>
+              <td>Terhubung Pada</td>
+              <td id="metaConnectedAt">-</td>
+            </tr>
+            <tr>
+              <td>File Sesi</td>
+              <td id="metaSessionFiles">-</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Controls -->
+        <div class="action-row">
+          <button id="btnRefresh" class="btn btn-secondary" onclick="checkStatus(true)">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            Refresh
+          </button>
+          <button id="btnAction" class="btn btn-primary" onclick="handlePrimaryAction()" disabled>
+            <i class="fa-solid fa-power-off"></i>
+            Initialize
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: TESTING & SENDING MESSAGES -->
+    <div class="glass-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <i class="fa-solid fa-paper-plane"></i>
+          Uji Kirim Pesan
+        </h2>
+      </div>
+
+      <!-- Tab Buttons -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('text')">
+          <i class="fa-solid fa-comment-dots"></i>
+          Text Message
+        </button>
+        <button class="tab-btn" onclick="switchTab('image')">
+          <i class="fa-solid fa-image"></i>
+          Image
+        </button>
+        <button class="tab-btn" onclick="switchTab('document')">
+          <i class="fa-solid fa-file-pdf"></i>
+          Document
+        </button>
+      </div>
+
+      <!-- TAB 1: TEXT MESSAGE -->
+      <div id="tabContentText" class="tab-content">
+        <form id="textForm" onsubmit="sendText(event)">
+          <div class="form-group">
+            <label class="form-label" for="textPhone">Nomor WhatsApp Tujuan</label>
+            <input type="text" id="textPhone" class="form-input" placeholder="Contoh: 08123456789 atau 628123456789" required>
+            <span class="field-hint">Format nomor Indonesia otomatis diubah ke kode negara 62.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="textMessage">Pesan Teks</label>
+            <textarea id="textMessage" class="form-input" placeholder="Tulis pesan WhatsApp di sini..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: auto; min-width: 160px; margin-left: auto;">
+            <i class="fa-solid fa-paper-plane"></i>
+            Kirim Teks
+          </button>
+        </form>
+      </div>
+
+      <!-- TAB 2: IMAGE MESSAGE -->
+      <div id="tabContentImage" class="tab-content" style="display: none;">
+        <form id="imageForm" onsubmit="sendImage(event)">
+          <div class="form-group">
+            <label class="form-label" for="imagePhone">Nomor WhatsApp Tujuan</label>
+            <input type="text" id="imagePhone" class="form-input" placeholder="Contoh: 628123456789" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="imageUrl">URL Gambar atau Base64</label>
+            <input type="text" id="imageUrl" class="form-input" placeholder="Contoh: https://picsum.photos/800/600" required>
+            <span class="field-hint">Masukkan link gambar HTTP/HTTPS atau string data base64 (tanpa prefix mime-type).</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="imageCaption">Caption (Opsional)</label>
+            <input type="text" id="imageCaption" class="form-input" placeholder="Tulis caption gambar di sini...">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: auto; min-width: 160px; margin-left: auto;">
+            <i class="fa-solid fa-image"></i>
+            Kirim Gambar
+          </button>
+        </form>
+      </div>
+
+      <!-- TAB 3: DOCUMENT MESSAGE -->
+      <div id="tabContentDocument" class="tab-content" style="display: none;">
+        <form id="documentForm" onsubmit="sendDocument(event)">
+          <div class="form-group">
+            <label class="form-label" for="docPhone">Nomor WhatsApp Tujuan</label>
+            <input type="text" id="docPhone" class="form-input" placeholder="Contoh: 628123456789" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="docUrl">URL Dokumen atau Base64</label>
+            <input type="text" id="docUrl" class="form-input" placeholder="Contoh: https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="docFilename">Nama File</label>
+            <input type="text" id="docFilename" class="form-input" placeholder="Contoh: laporan.pdf" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="docMimetype">Mime Type (Opsional)</label>
+            <input type="text" id="docMimetype" class="form-input" placeholder="Contoh: application/pdf" value="application/pdf">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: auto; min-width: 160px; margin-left: auto;">
+            <i class="fa-solid fa-file-pdf"></i>
+            Kirim Dokumen
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- SYSTEM LOG CONSOLE -->
+    <div class="glass-panel console-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <i class="fa-solid fa-terminal"></i>
+          Log Pengujian Real-Time
+        </h2>
+        <button class="btn-save-key" style="background: rgba(255,255,255,0.06); color: var(--text-muted);" onclick="clearLogs()">
+          Hapus Log
+        </button>
+      </div>
+      <div id="consoleLog" class="console-log">
+        <div class="console-line">
+          <span class="console-time">--:--:--</span>
+          <span class="console-text info">Console initialized. Menunggu aksi...</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    let pollInterval = null;
+    let currentStatus = 'disconnected';
+
+    // Auto-load API Key from LocalStorage or server config
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('wa_api_key') || (window.ENV_API_KEY || '');
+      if (savedKey) {
+        document.getElementById('apiKeyInput').value = savedKey;
+        if (!localStorage.getItem('wa_api_key')) {
+          localStorage.setItem('wa_api_key', savedKey);
+        }
+        writeLog('API Key berhasil dimuat otomatis.', 'success');
+        checkStatus(true);
+        // Start polling status
+        startPolling();
+      } else {
+        showToast('warning', 'Silakan masukkan API Key Anda di bagian atas!');
+        writeLog('API Key belum diatur. Harap masukkan API Key agar API dapat dipanggil.', 'warning');
+      }
+    });
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) {
+        showToast('error', 'API Key tidak boleh kosong!');
+        return;
+      }
+      localStorage.setItem('wa_api_key', key);
+      showToast('success', 'API Key berhasil disimpan!');
+      writeLog('API Key disimpan dan diperbarui.', 'success');
+      
+      // Re-trigger status checks
+      checkStatus(true);
+      startPolling();
+    }
+
+    function getHeaders() {
+      const key = localStorage.getItem('wa_api_key') || '';
+      return {
+        'Content-Type': 'application/json',
+        'x-api-key': key
+      };
+    }
+
+    // Polling Connection Status
+    function startPolling() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(() => {
+        checkStatus(false);
+      }, 5000); // Poll status every 5 seconds
+    }
+
+    async function checkStatus(isManual = false) {
+      const headers = getHeaders();
+      if (!headers['x-api-key']) {
+        updateUI('disconnected', null);
+        return;
+      }
+
+      try {
+        // Fetch health for uptime first
+        const healthPromise = fetch('/health');
+        const statusPromise = fetch('/api/session/status', { headers });
+
+        const [healthRes, statusRes] = await Promise.all([healthPromise, statusPromise]);
+        
+        if (statusRes.status === 401) {
+          showToast('error', 'API Key salah atau ditolak oleh server!');
+          writeLog('Koneksi gagal: API Key salah (401 Unauthorized)', 'error');
+          updateUI('disconnected', null);
+          clearInterval(pollInterval);
+          return;
+        }
+
+        const statusData = await statusRes.json();
+        let uptime = '--';
+        if (healthRes.ok) {
+          const healthData = await healthRes.json();
+          const ut = healthData.uptime;
+          const hrs = Math.floor(ut / 3600);
+          const mins = Math.floor((ut % 3600) / 60);
+          const secs = Math.floor(ut % 60);
+          uptime = `${hrs}j ${mins}m ${secs}d`;
+        }
+
+        document.getElementById('uptimeBadge').innerText = `Uptime: ${uptime}`;
+
+        if (statusData.success) {
+          const session = statusData.data;
+          updateUI(session.status, session);
+          
+          if (isManual) {
+            writeLog(`Status diperbarui: ${session.status.toUpperCase()}`, 'info');
+          }
+        }
+      } catch (error) {
+        if (isManual) {
+          showToast('error', 'Gagal menghubungi server API!');
+          writeLog(`Error checking status: ${error.message}`, 'error');
+        }
+        updateUI('disconnected', null);
+      }
+    }
+
+    function updateUI(status, data) {
+      currentStatus = status;
+      const badge = document.getElementById('statusBadge');
+      const icon = document.getElementById('statusIcon');
+      const txt = document.getElementById('statusText');
+      const detail = document.getElementById('statusDetail');
+      const qrContainer = document.getElementById('qrContainer');
+      const metaTable = document.getElementById('sessionMetaTable');
+      const btnAction = document.getElementById('btnAction');
+
+      // Reset
+      badge.className = 'status-badge-pulse';
+      btnAction.disabled = false;
+
+      if (status === 'connected') {
+        badge.classList.add('status-connected');
+        icon.className = 'fa-solid fa-circle-check';
+        txt.innerText = 'Connected';
+        txt.style.color = 'var(--success-color)';
+        detail.innerText = 'WhatsApp siap digunakan. Semua endpoint pengiriman aktif.';
+        
+        qrContainer.style.display = 'none';
+        metaTable.style.display = 'table';
+        
+        if (data) {
+          document.getElementById('metaPhone').innerText = data.phone || '-';
+          document.getElementById('metaName').innerText = data.name || '-';
+          document.getElementById('metaConnectedAt').innerText = data.connectedAt ? new Date(data.connectedAt).toLocaleString('id-ID') : '-';
+          document.getElementById('metaSessionFiles').innerText = data.session?.exists ? `${data.session.files} file (${data.session.sizeHuman})` : '-';
+        }
+
+        btnAction.className = 'btn btn-danger';
+        btnAction.innerHTML = '<i class="fa-solid fa-sign-out-alt"></i> Logout Akun';
+      } 
+      else if (status === 'qr') {
+        badge.classList.add('status-pending');
+        icon.className = 'fa-solid fa-qrcode';
+        txt.innerText = 'Scan QR Code';
+        txt.style.color = 'var(--warning-color)';
+        detail.innerText = 'WhatsApp belum dipindai. Silakan pindai QR code berikut.';
+        
+        metaTable.style.display = 'none';
+        qrContainer.style.display = 'block';
+
+        // Load QR Code Image
+        fetchQRCode();
+
+        btnAction.className = 'btn btn-danger';
+        btnAction.innerHTML = '<i class="fa-solid fa-trash-can"></i> Hapus Sesi';
+      } 
+      else if (status === 'connecting') {
+        badge.classList.add('status-pending');
+        icon.className = 'fa-solid fa-spinner spinner';
+        txt.innerText = 'Connecting...';
+        txt.style.color = 'var(--warning-color)';
+        detail.innerText = 'Menghubungkan ke WhatsApp Socket. Harap tunggu...';
+        
+        qrContainer.style.display = 'none';
+        metaTable.style.display = 'none';
+
+        btnAction.className = 'btn btn-danger';
+        btnAction.innerHTML = '<i class="fa-solid fa-circle-stop"></i> Stop';
+      } 
+      else { // disconnected
+        badge.classList.add('status-disconnected');
+        icon.className = 'fa-solid fa-unlink';
+        txt.innerText = 'Disconnected';
+        txt.style.color = 'var(--danger-color)';
+        detail.innerText = 'Sesi terputus. Silakan inisialisasi nomor Anda.';
+        
+        qrContainer.style.display = 'none';
+        metaTable.style.display = 'none';
+
+        btnAction.className = 'btn btn-primary';
+        btnAction.innerHTML = '<i class="fa-solid fa-play"></i> Hubungkan WA';
+      }
+    }
+
+    async function fetchQRCode() {
+      const headers = getHeaders();
+      try {
+        const res = await fetch('/api/session/qr', { headers });
+        const resData = await res.json();
+        if (resData.success && resData.data.qr) {
+          const qrImg = document.getElementById('qrImage');
+          if (qrImg.src !== resData.data.qr) {
+            qrImg.src = resData.data.qr;
+            writeLog('Gambar QR Code baru dimuat.', 'info');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch QR', err);
+      }
+    }
+
+    async function handlePrimaryAction() {
+      const headers = getHeaders();
+      const btn = document.getElementById('btnAction');
+      btn.disabled = true;
+
+      if (currentStatus === 'connected' || currentStatus === 'qr' || currentStatus === 'connecting') {
+        // Perform LOGOUT
+        if (confirm('Apakah Anda yakin ingin memutuskan koneksi dan menghapus semua file sesi?')) {
+          writeLog('Melakukan logout sesi...', 'warning');
+          try {
+            const res = await fetch('/api/session/logout', {
+              method: 'POST',
+              headers
+            });
+            const resData = await res.json();
+            if (resData.success) {
+              showToast('success', 'Berhasil logout dan menghapus sesi');
+              writeLog('Logout sukses. Session files terhapus.', 'success');
+              checkStatus(true);
+            } else {
+              showToast('error', resData.message || 'Gagal logout');
+            }
+          } catch (err) {
+            showToast('error', 'Error sewaktu melakukan logout');
+            writeLog(`Logout error: ${err.message}`, 'error');
+          }
+        }
+      } else {
+        // Perform INITIALIZE
+        writeLog('Menginisialisasi sesi WhatsApp...', 'info');
+        try {
+          const res = await fetch('/api/session/restart', {
+            method: 'POST',
+            headers
+          });
+          const resData = await res.json();
+          if (resData.success) {
+            showToast('success', 'Inisialisasi koneksi dimulai!');
+            writeLog('Koneksi socket sedang dimulai oleh server...', 'info');
+            checkStatus(true);
+          } else {
+            showToast('error', resData.message || 'Gagal menginisialisasi');
+          }
+        } catch (err) {
+          showToast('error', 'Error inisialisasi koneksi');
+          writeLog(`Init error: ${err.message}`, 'error');
+        }
+      }
+      btn.disabled = false;
+    }
+
+    // Message Sending Functions
+    async function sendText(e) {
+      e.preventDefault();
+      const phone = document.getElementById('textPhone').value.trim();
+      const message = document.getElementById('textMessage').value.trim();
+      
+      writeLog(`Mengirim pesan teks ke ${phone}...`, 'info');
+      
+      const payload = { phone, message };
+      await executePost('/api/message/send-text', payload);
+    }
+
+    async function sendImage(e) {
+      e.preventDefault();
+      const phone = document.getElementById('imagePhone').value.trim();
+      const image = document.getElementById('imageUrl').value.trim();
+      const caption = document.getElementById('imageCaption').value.trim();
+
+      writeLog(`Mengirim gambar ke ${phone}...`, 'info');
+
+      const payload = { phone, image, caption };
+      await executePost('/api/message/send-image', payload);
+    }
+
+    async function sendDocument(e) {
+      e.preventDefault();
+      const phone = document.getElementById('docPhone').value.trim();
+      const documentUrl = document.getElementById('docUrl').value.trim();
+      const filename = document.getElementById('docFilename').value.trim();
+      const mimetype = document.getElementById('docMimetype').value.trim();
+
+      writeLog(`Mengirim dokumen "${filename}" ke ${phone}...`, 'info');
+
+      const payload = { phone, document: documentUrl, filename, mimetype };
+      await executePost('/api/message/send-document', payload);
+    }
+
+    async function executePost(endpoint, payload) {
+      const headers = getHeaders();
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showToast('success', 'Pesan berhasil dikirim!');
+          writeLog(`Pesan sukses terkirim! ID: ${data.data.messageId}`, 'success');
+        } else {
+          const errMsg = data.message || 'Gagal mengirim pesan';
+          showToast('error', errMsg);
+          writeLog(`Gagal mengirim: ${errMsg}`, 'error');
+          if (data.errors) {
+            data.errors.forEach(err => {
+              writeLog(` - Validasi [${err.field}]: ${err.message}`, 'error');
+            });
+          }
+        }
+      } catch (error) {
+        showToast('error', 'Gagal mengirim karena gangguan jaringan.');
+        writeLog(`Network error: ${error.message}`, 'error');
+      }
+    }
+
+    // UI Utilities
+    function switchTab(tab) {
+      // Toggle active classes on buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.querySelector(`.tab-btn:nth-child(${tab === 'text' ? 1 : tab === 'image' ? 2 : 3})`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Toggle display of forms
+      document.getElementById('tabContentText').style.display = tab === 'text' ? 'block' : 'none';
+      document.getElementById('tabContentImage').style.display = tab === 'image' ? 'block' : 'none';
+      document.getElementById('tabContentDocument').style.display = tab === 'document' ? 'block' : 'none';
+    }
+
+    function writeLog(text, type = 'info') {
+      const consoleLog = document.getElementById('consoleLog');
+      const timeStr = new Date().toLocaleTimeString('id-ID');
+      
+      const logLine = document.createElement('div');
+      logLine.className = 'console-line';
+      
+      logLine.innerHTML = `
+        <span class="console-time">${timeStr}</span>
+        <span class="console-text ${type}">${text}</span>
+      `;
+      
+      consoleLog.appendChild(logLine);
+      consoleLog.scrollTop = consoleLog.scrollHeight;
+    }
+
+    function clearLogs() {
+      document.getElementById('consoleLog').innerHTML = `
+        <div class="console-line">
+          <span class="console-time">${new Date().toLocaleTimeString('id-ID')}</span>
+          <span class="console-text info">Logs cleared. Ready...</span>
+        </div>
+      `;
+    }
+
+    function showToast(type, msg) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const icon = type === 'success' 
+        ? 'fa-solid fa-circle-check' 
+        : type === 'error' 
+        ? 'fa-solid fa-triangle-exclamation' 
+        : 'fa-solid fa-circle-info';
+
+      toast.innerHTML = `
+        <i class="toast-icon ${icon}"></i>
+        <div class="toast-msg">${msg}</div>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Auto-remove after 4 seconds
+      setTimeout(() => {
+        toast.style.transform = 'translateY(100px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

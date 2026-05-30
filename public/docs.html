@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumentasi API — WA Service</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --panel-bg: rgba(30, 41, 59, 0.45);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --accent-color: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.5);
+      --success-color: #10b981;
+      --danger-color: #ef4444;
+      --warning-color: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --code-bg: #0b0f19;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Glow decorations */
+    .glow-sphere {
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(0,0,0,0) 75%);
+      filter: blur(50px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    .glow-1 { top: -150px; right: -50px; }
+    .glow-2 { bottom: -100px; left: -100px; }
+
+    header {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .brand i {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateX(-3px);
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 3rem auto;
+      padding: 0 2rem;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 3rem;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+        margin: 1.5rem auto;
+      }
+      aside {
+        display: none;
+      }
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      position: sticky;
+      top: 100px;
+      height: fit-content;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--text-main);
+      border-left-color: var(--accent-color);
+    }
+
+    /* Content Styling */
+    .doc-content {
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+
+    .doc-section {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .section-title i {
+      color: var(--accent-color);
+    }
+
+    p {
+      color: var(--text-muted);
+      line-height: 1.7;
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .alert-box {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 4px solid var(--warning-color);
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .alert-box.info {
+      background: rgba(99, 102, 241, 0.1);
+      border-left-color: var(--accent-color);
+    }
+
+    /* Endpoint Card */
+    .endpoint-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    .endpoint-header {
+      padding: 1rem 1.25rem;
+      background: rgba(15, 23, 42, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .badge {
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-get {
+      background: rgba(6, 182, 212, 0.15);
+      color: #06b6d4;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .badge-post {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success-color);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .endpoint-path {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .endpoint-body {
+      padding: 1.5rem;
+    }
+
+    /* Parameter Table */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0 1.5rem 0;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .param-table th, .param-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .param-table th {
+      color: var(--text-muted);
+      font-weight: 700;
+      background: rgba(0,0,0,0.15);
+    }
+
+    .param-table td code {
+      font-family: 'Courier New', Courier, monospace;
+      background: rgba(255,255,255,0.06);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: #f43f5e;
+    }
+
+    .param-req {
+      color: var(--danger-color);
+      font-weight: 700;
+    }
+
+    .param-opt {
+      color: var(--text-muted);
+    }
+
+    /* Code Snippet Styles */
+    .code-container {
+      position: relative;
+      margin-top: 1rem;
+    }
+
+    .code-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      display: block;
+    }
+
+    .code-block {
+      background: var(--code-bg);
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      color: #38bdf8;
+      border: 1px solid rgba(255,255,255,0.03);
+      line-height: 1.5;
+    }
+
+    .btn-copy {
+      position: absolute;
+      top: 2.2rem;
+      right: 1rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-main);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: var(--transition);
+    }
+
+    .btn-copy:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-sphere glow-1"></div>
+  <div class="glow-sphere glow-2"></div>
+
+  <header>
+    <a href="/" class="brand">
+      <i class="fa-brands fa-whatsapp"></i>
+      <div>
+        <h1 style="margin: 0; line-height: 1.2;">WA Service</h1>
+        <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin: 0;">Dokumentasi API</p>
+      </div>
+    </a>
+    <a href="/" class="btn-back">
+      <i class="fa-solid fa-arrow-left"></i>
+      Kembali ke Dashboard
+    </a>
+  </header>
+
+  <div class="container">
+    <!-- SIDEBAR NAV -->
+    <aside>
+      <ul class="sidebar-menu">
+        <li><a href="#intro" class="sidebar-link active"><i class="fa-solid fa-circle-info"></i> Pengantar</a></li>
+        <li><a href="#auth" class="sidebar-link"><i class="fa-solid fa-lock"></i> Autentikasi</a></li>
+        <li><a href="#endpoints-session" class="sidebar-link"><i class="fa-solid fa-server"></i> API Sesi</a></li>
+        <li><a href="#endpoints-message" class="sidebar-link"><i class="fa-solid fa-paper-plane"></i> API Pesan</a></li>
+      </ul>
+    </aside>
+
+    <!-- MAIN DOCS -->
+    <main class="doc-content">
+      
+      <!-- SECTION 1: INTRO -->
+      <section id="intro" class="doc-section">
+        <h2 class="section-title"><i class="fa-solid fa-circle-info"></i> Pengantar</h2>
+        <p>
+          Selamat datang di dokumentasi resmi **WA Service API**. REST API ini dirancang untuk memudahkan Anda berintegrasi dengan layanan WhatsApp, termasuk mengirim pesan teks, gambar, dan dokumen secara otomatis melalui pemrograman.
+        </p>
+        <p>
+          Layanan ini menggunakan arsitektur **Express.js** yang modern, dengan integrasi pustaka **Baileys** yang stabil. Semua endpoint menggunakan format respons **JSON** standar dan dilindungi oleh API Key demi keamanan.
+        </p>
+        <div class="alert-box info">
+          <i class="fa-solid fa-lightbulb"></i> &nbsp; **Tips:** Untuk mencoba endpoint ini secara interaktif, gunakan halaman pengujian dashboard utama dengan mengklik tombol *Kembali ke Dashboard* di pojok kanan atas.
+        </div>
+      </section>
+
+      <!-- SECTION 2: AUTHENTICATION -->
+      <section id="auth" class="doc-section">
+        <h2 class="section-title"><i class="fa-solid fa-lock"></i> Autentikasi</h2>
+        <p>
+          Setiap permintaan ke API ini (kecuali endpoint `/health` dan `/api-config.js`) wajib menyertakan kunci autentikasi **x-api-key** di dalam header HTTP. Permintaan tanpa header ini atau dengan kunci yang salah akan menghasilkan respons `401 Unauthorized`.
+        </p>
+        <div class="alert-box">
+          <i class="fa-solid fa-triangle-exclamation"></i> &nbsp; **Peringatan:** Amankan API Key Anda! Jangan menyebarkan kunci ini di repositori kode publik Anda.
+        </div>
+        
+        <div class="code-container">
+          <span class="code-label">Contoh Header HTTP:</span>
+          <pre class="code-block">
+x-api-key: 4b9d8e7f2a1c6d5e3f0b9a7c4d2e8f1a6b3c9d7e5f2a8b1c4d6e9f7a3b5c2d1
+Content-Type: application/json</pre>
+          <button class="btn-copy" onclick="copyCode(this)">
+            <i class="fa-regular fa-copy"></i> Copy
+          </button>
+        </div>
+      </section>
+
+      <!-- SECTION 3: SESSION API -->
+      <section id="endpoints-session" class="doc-section">
+        <h2 class="section-title"><i class="fa-solid fa-server"></i> API Sesi</h2>
+        <p>Endpoint di bawah ini digunakan untuk melacak status koneksi WhatsApp Anda, menampilkan QR Code, dan mengontrol siklus sesi.</p>
+
+        <!-- Status Endpoint -->
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="badge badge-get">GET</span>
+            <span class="endpoint-path">/api/session/status</span>
+          </div>
+          <div class="endpoint-body">
+            <p>Mendapatkan informasi detail mengenai status sesi koneksi WhatsApp saat ini.</p>
+            <div class="code-container">
+              <span class="code-label">Contoh Respons Sukses (200 OK):</span>
+              <pre class="code-block">{
+  "success": true,
+  "message": "Session status retrieved",
+  "data": {
+    "status": "connected",
+    "phone": "628123456789",
+    "name": "My Business WA",
+    "connectedAt": "2026-05-30T11:00:00.000Z",
+    "retries": 0,
+    "session": {
+      "exists": true,
+      "files": 12,
+      "sizeHuman": "4.21 KB"
+    }
+  }
+}</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Endpoint -->
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="badge badge-get">GET</span>
+            <span class="endpoint-path">/api/session/qr</span>
+          </div>
+          <div class="endpoint-body">
+            <p>Mendapatkan data QR Code dalam format **Base64 Data URL** untuk dipindai di WhatsApp.</p>
+            <div class="code-container">
+              <span class="code-label">Contoh Respons (200 OK):</span>
+              <pre class="code-block">{
+  "success": true,
+  "message": "Scan this QR code with WhatsApp",
+  "data": {
+    "status": "qr",
+    "qr": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA..."
+  }
+}</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logout Endpoint -->
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="badge badge-post">POST</span>
+            <span class="endpoint-path">/api/session/logout</span>
+          </div>
+          <div class="endpoint-body">
+            <p>Memutuskan sesi WhatsApp saat ini dan **menghapus semua file otentikasi** di server.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: MESSAGE API -->
+      <section id="endpoints-message" class="doc-section">
+        <h2 class="section-title"><i class="fa-solid fa-paper-plane"></i> API Pesan</h2>
+        <p>Endpoint ini digunakan untuk mengirim berbagai bentuk pesan WhatsApp. WhatsApp **harus berada dalam kondisi terhubung (connected)** untuk menggunakan endpoint ini.</p>
+
+        <!-- Send Text -->
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="badge badge-post">POST</span>
+            <span class="endpoint-path">/api/message/send-text</span>
+          </div>
+          <div class="endpoint-body">
+            <p>Mengirimkan pesan teks biasa atau pesan teks yang menggunakan emoji.</p>
+            
+            <table class="param-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Tipe</th>
+                  <th>Kewajiban</th>
+                  <th>Deskripsi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>phone</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>Nomor WhatsApp tujuan (contoh: 08123456789 atau 628123456789).</td>
+                </tr>
+                <tr>
+                  <td><code>message</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>Konten teks pesan yang ingin dikirimkan.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="code-container">
+              <span class="code-label">Contoh Command cURL:</span>
+              <pre class="code-block">curl -X POST http://localhost:3000/api/message/send-text \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-secret-api-key" \
+  -d '{
+    "phone": "628123456789",
+    "message": "Halo, ini pesan pengujian otomatis! 🚀"
+  }'</pre>
+              <button class="btn-copy" onclick="copyCode(this)">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Send Image -->
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="badge badge-post">POST</span>
+            <span class="endpoint-path">/api/message/send-image</span>
+          </div>
+          <div class="endpoint-body">
+            <p>Mengirimkan pesan gambar menggunakan URL publik atau representasi data base64.</p>
+            
+            <table class="param-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Tipe</th>
+                  <th>Kewajiban</th>
+                  <th>Deskripsi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>phone</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>Nomor WhatsApp tujuan.</td>
+                </tr>
+                <tr>
+                  <td><code>image</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>URL gambar publik (HTTP/HTTPS) ATAU string data base64 dari gambar.</td>
+                </tr>
+                <tr>
+                  <td><code>caption</code></td>
+                  <td>String</td>
+                  <td><span class="param-opt">Opsional</span></td>
+                  <td>Teks teks keterangan gambar yang dilampirkan.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="code-container">
+              <span class="code-label">Contoh Command cURL:</span>
+              <pre class="code-block">curl -X POST http://localhost:3000/api/message/send-image \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-secret-api-key" \
+  -d '{
+    "phone": "628123456789",
+    "image": "https://picsum.photos/800/600",
+    "caption": "Pemandangan hari ini! ☀️"
+  }'</pre>
+              <button class="btn-copy" onclick="copyCode(this)">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Send Document -->
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="badge badge-post">POST</span>
+            <span class="endpoint-path">/api/message/send-document</span>
+          </div>
+          <div class="endpoint-body">
+            <p>Mengirimkan file dokumen (seperti PDF, Excel, Word, dll) via WhatsApp.</p>
+            
+            <table class="param-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Tipe</th>
+                  <th>Kewajiban</th>
+                  <th>Deskripsi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>phone</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>Nomor WhatsApp tujuan.</td>
+                </tr>
+                <tr>
+                  <td><code>document</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>URL dokumen publik (HTTP/HTTPS) ATAU string data base64.</td>
+                </tr>
+                <tr>
+                  <td><code>filename</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>Nama file saat diterima oleh WhatsApp penerima (misal: `invoice.pdf`).</td>
+                </tr>
+                <tr>
+                  <td><code>mimetype</code></td>
+                  <td>String</td>
+                  <td><span class="param-opt">Opsional</span></td>
+                  <td>Mime-type file. Default: `application/pdf`.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="code-container">
+              <span class="code-label">Contoh Command cURL:</span>
+              <pre class="code-block">curl -X POST http://localhost:3000/api/message/send-document \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-secret-api-key" \
+  -d '{
+    "phone": "628123456789",
+    "document": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    "filename": "laporan_keuangan.pdf",
+    "mimetype": "application/pdf"
+  }'</pre>
+              <button class="btn-copy" onclick="copyCode(this)">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Copy Code Helper
+    function copyCode(btn) {
+      const pre = btn.previousElementSibling;
+      const text = pre.innerText;
+      
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy', err);
+      });
+    }
+
+    // Scroll Spy & Dynamic host replacement on DOMContentLoaded
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Replace hardcoded http://localhost:3000 with the active current origin dynamically
+      const currentOrigin = window.location.origin;
+      document.querySelectorAll('.code-block').forEach(block => {
+        block.innerHTML = block.innerHTML.replace(/http:\/\/localhost:3000/g, currentOrigin);
+      });
+
+      // 2. Scroll Spy Setup for sidebar navigation link activation
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('id');
+          if (entry.intersectionRatio > 0) {
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+              link.classList.remove('active');
+            });
+            const activeLink = document.querySelector(`.sidebar-link[href="#${id}"]`);
+            if (activeLink) activeLink.classList.add('active');
+          }
+        });
+      });
+
+      // Track all sections
+      document.querySelectorAll('section[id]').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
+</body>
+</html>
