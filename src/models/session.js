@@ -29,7 +29,6 @@ class Session {
     this.status = status;
     if (status === SESSION_STATUS.CONNECTED) {
       this.connectedAt = new Date().toISOString();
-      this.retries = 0;
       this.qr = null;
       this.lastError = null;
     }

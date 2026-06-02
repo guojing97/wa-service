@@ -19,6 +19,7 @@ class WhatsAppService {
     this.socket = null;
     this.session = new Session();
     this.qrTimeout = null;
+    this.connectionTimeout = null;
     this._reconnecting = false;
   }
 
@@ -118,6 +119,12 @@ class WhatsAppService {
       if (this.qrTimeout) clearTimeout(this.qrTimeout);
       this._reconnecting = false;
 
+      if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
+      this.connectionTimeout = setTimeout(() => {
+        logger.info('Connection stable. Resetting retries.');
+        this.session.resetRetries();
+      }, 60000); // Consider connection stable after 60 seconds
+
       const user = this.socket.user;
       const phone = user?.id?.split(':')[0] || 'unknown';
       const name = user?.name || 'unknown';
@@ -134,6 +141,7 @@ class WhatsAppService {
     // Connection closed
     if (connection === 'close') {
       if (this.qrTimeout) clearTimeout(this.qrTimeout);
+      if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 
       const statusCode = (lastDisconnect?.error)?.output?.statusCode;
       const errorMessage = lastDisconnect?.error?.message || 'Unknown error';
@@ -174,26 +182,48 @@ class WhatsAppService {
   async _handleReconnect(statusCode) {
     if (this._reconnecting) return;
 
-    this.session.incrementRetry();
+    const isRestartRequired = statusCode === DisconnectReason.restartRequired;
+    const isNetworkError = [
+      DisconnectReason.connectionLost,
+      DisconnectReason.connectionClosed,
+      DisconnectReason.timedOut
+    ].includes(statusCode);
+
+    if (!isRestartRequired) {
+      this.session.incrementRetry();
+    }
 
     if (this.session.isMaxRetriesExceeded(config.session.maxRetries)) {
-      logger.error('Max reconnection retries reached', {
-        retries: this.session.retries,
-        maxRetries: config.session.maxRetries,
-      });
+      if (!isNetworkError) {
+        logger.error('Max reconnection retries reached', {
+          retries: this.session.retries,
+          maxRetries: config.session.maxRetries,
+          statusCode
+        });
 
-      this.session.setStatus(SESSION_STATUS.DISCONNECTED);
-      this.socket = null;
+        this.session.setStatus(SESSION_STATUS.DISCONNECTED);
+        this.socket = null;
 
-      await telegramService.notifyMaxRetries(this.session.retries);
-      return;
+        await telegramService.notifyMaxRetries(this.session.retries);
+        return;
+      } else {
+        logger.warn('Network is unstable, max retries exceeded. Continuing to reconnect with max delay...', {
+          retries: this.session.retries,
+          statusCode
+        });
+      }
     }
 
     // Exponential backoff: baseInterval * 2^(retry - 1), max 60s
-    const delay = Math.min(
+    let delay = Math.min(
       config.session.reconnectInterval * Math.pow(2, this.session.retries - 1),
       60000
     );
+
+    // Fast reconnect for restartRequired
+    if (isRestartRequired) {
+      delay = 2000;
+    }
 
     logger.info('Reconnecting...', {
       retry: this.session.retries,
