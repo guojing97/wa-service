@@ -10,6 +10,9 @@ const { errorHandler, notFoundHandler } = require('../middlewares/errorHandler')
 function createApp() {
   const app = express();
 
+  // Trust proxy to allow correct IP resolution behind reverse proxies (e.g. Nginx, PM2)
+  app.set('trust proxy', 1);
+
   // Security headers (relaxed CSP to allow dashboard inline styles & scripts)
   app.use(helmet({
     contentSecurityPolicy: false,
