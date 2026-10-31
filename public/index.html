@@ -770,14 +770,16 @@
     let pollInterval = null;
     let currentStatus = 'disconnected';
 
-    // Auto-load API Key from LocalStorage or server config
+    // Auto-load API Key: server config takes precedence, fallback to localStorage
     document.addEventListener('DOMContentLoaded', () => {
-      const savedKey = localStorage.getItem('wa_api_key') || (window.ENV_API_KEY || '');
+      // ponytail: prioritize injected ENV_API_KEY over stale localStorage; upgrade when multi-tenant keys needed
+      const serverKey = window.ENV_API_KEY || '';
+      const localKey = localStorage.getItem('wa_api_key') || '';
+      const savedKey = serverKey || localKey;
+
       if (savedKey) {
         document.getElementById('apiKeyInput').value = savedKey;
-        if (!localStorage.getItem('wa_api_key')) {
-          localStorage.setItem('wa_api_key', savedKey);
-        }
+        localStorage.setItem('wa_api_key', savedKey);
         writeLog('API Key berhasil dimuat otomatis.', 'success');
         checkStatus(true);
         // Start polling status
@@ -804,7 +806,8 @@
     }
 
     function getHeaders() {
-      const key = localStorage.getItem('wa_api_key') || '';
+      const inputVal = document.getElementById('apiKeyInput')?.value?.trim();
+      const key = inputVal || localStorage.getItem('wa_api_key') || window.ENV_API_KEY || '';
       return {
         'Content-Type': 'application/json',
         'x-api-key': key
@@ -834,6 +837,11 @@
         const [healthRes, statusRes] = await Promise.all([healthPromise, statusPromise]);
         
         if (statusRes.status === 401) {
+          if (window.ENV_API_KEY && headers['x-api-key'] !== window.ENV_API_KEY) {
+            document.getElementById('apiKeyInput').value = window.ENV_API_KEY;
+            localStorage.setItem('wa_api_key', window.ENV_API_KEY);
+            return checkStatus(isManual);
+          }
           showToast('error', 'API Key salah atau ditolak oleh server!');
           writeLog('Koneksi gagal: API Key salah (401 Unauthorized)', 'error');
           updateUI('disconnected', null);
@@ -1072,9 +1080,9 @@
           const errMsg = data.message || 'Gagal mengirim pesan';
           showToast('error', errMsg);
           writeLog(`Gagal mengirim: ${errMsg}`, 'error');
-          if (data.errors) {
+          if (Array.isArray(data.errors)) {
             data.errors.forEach(err => {
-              writeLog(` - Validasi [${err.field}]: ${err.message}`, 'error');
+              writeLog(` - [${err.field}]: ${err.message}`, 'error');
             });
           }
         }

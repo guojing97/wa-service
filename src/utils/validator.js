@@ -26,8 +26,11 @@ function formatPhoneNumber(phone) {
  * Validate phone number format
  */
 function isValidPhone(phone) {
-  const cleaned = phone.replace(/\D/g, '');
-  // Must be at least 10 digits and start with valid country code or 0
+  if (!phone || (typeof phone !== 'string' && typeof phone !== 'number')) {
+    return false;
+  }
+  const cleaned = String(phone).replace(/\D/g, '');
+  // Must be between 10-15 digits
   return cleaned.length >= 10 && cleaned.length <= 15;
 }
 
@@ -49,6 +52,19 @@ function handleValidation(req, res, next) {
   next();
 }
 
+// Validation rules for checking number existence
+const checkNumberRules = [
+  body('phone')
+    .notEmpty()
+    .withMessage('Phone number is required')
+    .custom((value) => {
+      if (!isValidPhone(value)) {
+        throw new Error('Invalid phone number format. Must be between 10-15 digits.');
+      }
+      return true;
+    }),
+];
+
 // Validation rules for sending text message
 const sendTextRules = [
   body('phone')
@@ -56,7 +72,7 @@ const sendTextRules = [
     .withMessage('Phone number is required')
     .custom((value) => {
       if (!isValidPhone(value)) {
-        throw new Error('Invalid phone number format');
+        throw new Error('Invalid phone number format. Must be between 10-15 digits.');
       }
       return true;
     }),
@@ -70,7 +86,7 @@ const sendImageRules = [
     .withMessage('Phone number is required')
     .custom((value) => {
       if (!isValidPhone(value)) {
-        throw new Error('Invalid phone number format');
+        throw new Error('Invalid phone number format. Must be between 10-15 digits.');
       }
       return true;
     }),
@@ -85,7 +101,7 @@ const sendDocumentRules = [
     .withMessage('Phone number is required')
     .custom((value) => {
       if (!isValidPhone(value)) {
-        throw new Error('Invalid phone number format');
+        throw new Error('Invalid phone number format. Must be between 10-15 digits.');
       }
       return true;
     }),
@@ -98,6 +114,7 @@ module.exports = {
   formatPhoneNumber,
   isValidPhone,
   handleValidation,
+  checkNumberRules,
   sendTextRules,
   sendImageRules,
   sendDocumentRules,

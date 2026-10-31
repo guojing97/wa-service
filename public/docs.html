@@ -499,7 +499,47 @@ Content-Type: application/json</pre>
       <!-- SECTION 4: MESSAGE API -->
       <section id="endpoints-message" class="doc-section">
         <h2 class="section-title"><i class="fa-solid fa-paper-plane"></i> API Pesan</h2>
-        <p>Endpoint ini digunakan untuk mengirim berbagai bentuk pesan WhatsApp. WhatsApp **harus berada dalam kondisi terhubung (connected)** untuk menggunakan endpoint ini.</p>
+        <p>Endpoint ini digunakan untuk memeriksa nomor dan mengirim berbagai bentuk pesan WhatsApp. WhatsApp **harus berada dalam kondisi terhubung (connected)** untuk menggunakan endpoint ini.</p>
+
+        <!-- Check Number -->
+        <div class="endpoint-card">
+          <div class="endpoint-header">
+            <span class="badge badge-post">POST</span>
+            <span class="endpoint-path">/api/message/check-number</span>
+          </div>
+          <div class="endpoint-body">
+            <p>Memeriksa apakah suatu nomor telepon terdaftar aktif di WhatsApp.</p>
+            
+            <table class="param-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Tipe</th>
+                  <th>Kewajiban</th>
+                  <th>Deskripsi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>phone</code></td>
+                  <td>String</td>
+                  <td><span class="param-req">Wajib</span></td>
+                  <td>Nomor telepon tujuan (10-15 digit, contoh: 08123456789).</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="code-container">
+              <span class="code-label">Contoh Command cURL:</span>
+              <pre class="code-block">curl -X POST http://localhost:3000/api/message/check-number \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: your-secret-api-key" \
+  -d '{
+    "phone": "08123456789"
+  }'</pre>
+            </div>
+          </div>
+        </div>
 
         <!-- Send Text -->
         <div class="endpoint-card">

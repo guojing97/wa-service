@@ -4,10 +4,12 @@ const {
   DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
+  Browsers,
 } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const QRCode = require('qrcode');
+const qrcodeTerminal = require('qrcode-terminal');
 const config = require('../config/env');
 const logger = require('../config/logger');
 const { Session, SESSION_STATUS } = require('../models/session');
@@ -40,6 +42,17 @@ class WhatsAppService {
       const { version } = await fetchLatestBaileysVersion();
       logger.info('Using WA Web version', { version });
 
+      // Clean up previous socket if exists
+      if (this.socket) {
+        try {
+          this.socket.ev.removeAllListeners('connection.update');
+          this.socket.ev.removeAllListeners('creds.update');
+          this.socket.ev.removeAllListeners('messages.upsert');
+          this.socket.end(undefined);
+        } catch (_) {}
+        this.socket = null;
+      }
+
       // Create socket
       this.socket = makeWASocket({
         version,
@@ -47,9 +60,9 @@ class WhatsAppService {
           creds: state.creds,
           keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
         },
-        printQRInTerminal: true,
         logger: pino({ level: 'silent' }),
-        browser: ['WA Service', 'Chrome', '10.0.0'],
+        browser: Browsers.ubuntu('Chrome'),
+        syncFullHistory: false,
         connectTimeoutMs: 60000,
         defaultQueryTimeoutMs: 0,
         keepAliveIntervalMs: 25000,
@@ -104,6 +117,9 @@ class WhatsAppService {
     if (qr) {
       logger.info('QR code received, waiting for scan...');
       this.session.setQR(qr);
+      try {
+        qrcodeTerminal.generate(qr, { small: true });
+      } catch (_) {}
 
       // Set QR timeout (2 minutes)
       if (this.qrTimeout) clearTimeout(this.qrTimeout);
@@ -112,6 +128,11 @@ class WhatsAppService {
           logger.warn('QR code expired, will generate new one on next attempt');
         }
       }, 120000);
+    }
+
+    // Connection in progress
+    if (connection === 'connecting') {
+      this.session.setStatus(SESSION_STATUS.CONNECTING);
     }
 
     // Connection opened
@@ -243,6 +264,31 @@ class WhatsAppService {
         logger.error('Reconnection failed', { error: error.message });
       }
     }, delay);
+  }
+
+  /**
+   * Check if phone number is registered on WhatsApp
+   * @param {string} jid
+   * @returns {Promise<{ exists: boolean, jid?: string }>}
+   */
+  async checkNumber(jid) {
+    this._ensureConnected();
+
+    try {
+      const results = await this.socket.onWhatsApp(jid);
+      if (Array.isArray(results) && results.length > 0 && results[0].exists) {
+        return {
+          exists: true,
+          jid: results[0].jid,
+        };
+      }
+      return {
+        exists: false,
+      };
+    } catch (error) {
+      logger.error('Failed to check number on WhatsApp', { jid, error: error.message });
+      throw error;
+    }
   }
 
   /**

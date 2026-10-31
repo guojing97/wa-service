@@ -2,10 +2,24 @@ const express = require('express');
 const router = express.Router();
 const messageController = require('../controllers/messageController');
 const { messageLimiter } = require('../middlewares/rateLimiter');
-const { sendTextRules, sendImageRules, sendDocumentRules, handleValidation } = require('../utils/validator');
+const {
+  checkNumberRules,
+  sendTextRules,
+  sendImageRules,
+  sendDocumentRules,
+  handleValidation,
+} = require('../utils/validator');
 
 // Apply message rate limiter to all message routes
 router.use(messageLimiter);
+
+// POST /api/message/check-number
+router.post(
+  '/check-number',
+  checkNumberRules,
+  handleValidation,
+  (req, res, next) => messageController.checkNumber(req, res, next)
+);
 
 // POST /api/message/send-text
 router.post(
